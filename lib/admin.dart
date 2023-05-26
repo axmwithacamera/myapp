@@ -19,38 +19,7 @@ class News {
 }
 
 class Home extends StatefulWidget {
-  static List<News> newsList = [
-    News(
-      title: "News Title 1",
-      caption: "News Caption 1",
-      body: "News Body 1",
-      image: "assets/news_image_1.jpg", // Placeholder for image path
-    ),
-    News(
-      title: "News Title 2",
-      caption: "News Caption 2",
-      body: "News Body 2",
-      image: null, // case where no image is provided
-    ),
-    News(
-      title: "News Title 3",
-      caption: "News Caption 3",
-      body: "News Body 3",
-      image: "assets/news_image_3.jpg", // Placeholder for image path
-    ),
-    News(
-      title: "News Title 4",
-      caption: "News Caption 4",
-      body: "News Body 4",
-      image: "assets/news_image_4.jpg", // Placeholder for image path
-    ),
-    News(
-      title: "News Title 5",
-      caption: "News Caption 5",
-      body: "News Body 5",
-      image: "assets/news_image_5.jpg", // Placeholder for image path
-    ),
-  ];
+  static List<News> newsList = [];
 
   const Home({Key? key}) : super(key: key);
 
@@ -86,7 +55,8 @@ class _HomeState extends State<Home> {
                 if (newsItem.image != null)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(
-                        8), // to round the corners a little
+                      8,
+                    ), // to round the corners a little
                     child: Container(
                       width: double.infinity,
                       height: 200,
@@ -175,7 +145,8 @@ class _AdminState extends State<Admin> {
     final String body = bodyController.text;
 
     setState(() {
-      Home.newsList.add(
+      Home.newsList.insert(
+        0,
         News(
           title: title,
           caption: caption,
@@ -275,7 +246,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

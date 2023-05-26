@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'home.dart';
+import 'package:myapp/admin.dart';
 import 'login.dart';
 
 class Signup extends StatefulWidget {
@@ -145,8 +144,8 @@ class _SignupState extends State<Signup> {
               child: TextButton(
                 onPressed: () {
                   setState(() {});
-                  Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => const Home()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const Admin()));
                   debugPrint("pressed Sign Up");
                 },
                 child: const Text(
