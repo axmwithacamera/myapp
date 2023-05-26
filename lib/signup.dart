@@ -3,7 +3,7 @@ import 'package:myapp/home.dart';
 import 'login.dart';
 
 class Signup extends StatefulWidget {
-  Signup({Key? key}) : super(key: key);
+  const Signup({Key? key}) : super(key: key);
 
   @override
   State<Signup> createState() => _SignupState();
