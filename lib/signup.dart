@@ -43,7 +43,7 @@ class _SignupState extends State<Signup> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Name',
                   hintText: 'Enter your name eg: Ahmed Mohamed',
@@ -51,15 +51,15 @@ class _SignupState extends State<Signup> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 10, bottom: 10),
+            const Padding(
+              padding:
+                  EdgeInsets.only(left: 15.0, right: 15.0, top: 10, bottom: 10),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: phoneNumberController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Phone Number',
                   hintText: 'Enter your mobile number',
@@ -67,15 +67,15 @@ class _SignupState extends State<Signup> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 10, bottom: 10),
+            const Padding(
+              padding:
+                  EdgeInsets.only(left: 15.0, right: 15.0, top: 10, bottom: 10),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Email',
                   hintText: 'Enter valid email id as abc@gmail.com',
@@ -83,15 +83,15 @@ class _SignupState extends State<Signup> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 10, bottom: 10),
+            const Padding(
+              padding:
+                  EdgeInsets.only(left: 15.0, right: 15.0, top: 10, bottom: 10),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: passwordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Password',
                   hintText: 'Enter your password',
@@ -99,15 +99,15 @@ class _SignupState extends State<Signup> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 10, bottom: 10),
+            const Padding(
+              padding:
+                  EdgeInsets.only(left: 15.0, right: 15.0, top: 10, bottom: 10),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: confirmPasswordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Confirm Password',
                   hintText: 'Enter your password',
@@ -115,9 +115,9 @@ class _SignupState extends State<Signup> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 30, bottom: 30),
+            const Padding(
+              padding:
+                  EdgeInsets.only(left: 15.0, right: 15.0, top: 30, bottom: 30),
             ),
             Container(
               height: 40,
@@ -139,11 +139,11 @@ class _SignupState extends State<Signup> {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: Text('Error'),
-                          content: Text('Please fill all the fields.'),
+                          title: const Text('Error'),
+                          content: const Text('Please fill all the fields.'),
                           actions: <Widget>[
                             TextButton(
-                              child: Text('OK'),
+                              child: const Text('OK'),
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
