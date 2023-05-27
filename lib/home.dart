@@ -52,6 +52,24 @@ class _HomeState extends State<Home> {
     // Implement your logout logic here
   }
 
+  void showFullScreenImage(String imagePath) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: Image.file(
+              File(imagePath),
+              fit: BoxFit.contain,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,28 +145,76 @@ class _HomeState extends State<Home> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (newsItem.image != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 230,
-                      child: Image.file(
-                        File(newsItem.image!),
-                        fit: BoxFit.cover,
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 230,
+                          child: Image.file(
+                            File(newsItem.image!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              showFullScreenImage(newsItem.image!);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color.fromARGB(103, 255, 255, 255),
+                              ),
+                              child: const Icon(
+                                Icons.fullscreen,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        newsItem.title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              newsItem.title,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              toggleFavorite(index);
+                            },
+                            icon: Icon(
+                              newsItem.isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: newsItem.isFavorite
+                                  ? Colors.red
+                                  : Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
                         newsItem.caption,
@@ -159,6 +225,7 @@ class _HomeState extends State<Home> {
                       ),
                       const SizedBox(height: 10),
                       Text(newsItem.body),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
