@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-import 'package:myapp/admin.dart';
+import 'package:flutter/material.dart';
+import 'package:myapp/favourite.dart';
+import 'package:myapp/login.dart';
 
 class News {
   final String title;
@@ -34,6 +36,22 @@ class _HomeState extends State<Home> {
     });
   }
 
+  void openFavoritesPage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Favourite()),
+    );
+  }
+
+  void logout(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const Login()),
+      (route) => false,
+    );
+    // Implement your logout logic here
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,6 +60,62 @@ class _HomeState extends State<Home> {
         title: const Text("News App"),
         centerTitle: true,
         backgroundColor: Colors.blue,
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.blue,
+        width: MediaQuery.of(context).size.width * 0.5,
+        child: ListView(
+          children: [
+            InkWell(
+              onTap: () {
+                openFavoritesPage(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: const [
+                    Icon(
+                      Icons.favorite,
+                      color: Colors.white,
+                    ),
+                    SizedBox(width: 16),
+                    Text(
+                      "Favorites",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                logout(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: const [
+                    Icon(
+                      Icons.logout,
+                      color: Colors.white,
+                    ),
+                    SizedBox(width: 16),
+                    Text(
+                      "Logout",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       body: ListView.builder(
         itemCount: Home.newsList.length,
@@ -54,21 +128,13 @@ class _HomeState extends State<Home> {
               children: [
                 if (newsItem.image != null)
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      8,
-                    ), // to round the corners a little
-                    child: Container(
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
                       width: double.infinity,
-                      height: 200,
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Text(
-                          'Image Placeholder',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      height: 230,
+                      child: Image.file(
+                        File(newsItem.image!),
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
@@ -93,18 +159,6 @@ class _HomeState extends State<Home> {
                       ),
                       const SizedBox(height: 10),
                       Text(newsItem.body),
-                      IconButton(
-                        icon: Icon(
-                          newsItem.isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color:
-                              newsItem.isFavorite ? Colors.red : Colors.black,
-                        ),
-                        onPressed: () {
-                          toggleFavorite(index);
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -115,6 +169,10 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+}
+
+void main() {
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -129,7 +187,8 @@ class MyApp extends StatelessWidget {
       ),
       home: const Home(),
       routes: {
-        '/admin': (context) => const Admin(),
+        '/login': (context) => const Login(),
+        '/favourite': (context) => const Favourite(),
       },
     );
   }
