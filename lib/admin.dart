@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myapp/home.dart';
+import 'package:myapp/login.dart';
 import 'package:myapp/manage.dart';
 
 class Admin extends StatefulWidget {
@@ -62,7 +63,7 @@ class _AdminState extends State<Admin> {
   void logout(BuildContext context) {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const Home()),
+      MaterialPageRoute(builder: (context) => const Login()),
       (route) => false,
     );
     // Implement your logout logic here
