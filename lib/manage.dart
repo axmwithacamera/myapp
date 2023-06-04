@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myapp/admin.dart';
+import 'package:myapp/components/my_textfield.dart';
 import 'package:myapp/home.dart';
 import 'package:myapp/login.dart';
 
@@ -43,23 +44,31 @@ class _ManageNewsState extends State<ManageNews> {
           content: SingleChildScrollView(
             child: Column(
               children: [
-                TextFormField(
+                MyTextField(
                   controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                  ),
+                  labelText: 'Title',
+                  hintText: 'Enter title',
+                  obscureText: false,
                 ),
-                TextFormField(
+                const Padding(
+                  padding: EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 10, bottom: 10),
+                ),
+                MyTextField(
                   controller: captionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Caption',
-                  ),
+                  labelText: 'Caption',
+                  hintText: 'Enter caption',
+                  obscureText: false,
                 ),
-                TextFormField(
+                const Padding(
+                  padding: EdgeInsets.only(
+                      left: 15.0, right: 15.0, top: 10, bottom: 10),
+                ),
+                MyTextField(
                   controller: bodyController,
-                  decoration: const InputDecoration(
-                    labelText: 'Body',
-                  ),
+                  labelText: 'Body',
+                  hintText: 'Enter body text',
+                  obscureText: false,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:myapp/components/my_textfield.dart';
 import 'package:myapp/home.dart';
 import 'package:myapp/login.dart';
 import 'package:myapp/manage.dart';
@@ -137,61 +138,75 @@ class _AdminState extends State<Admin> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
+              MyTextField(
                 controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                ),
+                labelText: 'Title',
+                hintText: 'Enter title',
+                obscureText: false,
               ),
-              TextFormField(
+              const Padding(
+                padding: EdgeInsets.only(
+                    left: 15.0, right: 15.0, top: 10, bottom: 10),
+              ),
+              MyTextField(
                 controller: captionController,
-                decoration: const InputDecoration(
-                  labelText: 'Caption',
-                ),
+                labelText: 'Caption',
+                hintText: 'Enter caption',
+                obscureText: false,
               ),
-              TextFormField(
+              const Padding(
+                padding: EdgeInsets.only(
+                    left: 15.0, right: 15.0, top: 10, bottom: 10),
+              ),
+              MyTextField(
                 controller: bodyController,
-                decoration: const InputDecoration(
-                  labelText: 'Body',
-                ),
+                labelText: 'Body',
+                hintText: 'Enter body text',
+                obscureText: false,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.camera),
-                              title: const Text('Take a photo'),
-                              onTap: () {
-                                _pickImage(ImageSource.camera);
-                                Navigator.pop(context);
-                              },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return SafeArea(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  leading: const Icon(Icons.camera),
+                                  title: const Text('Take a photo'),
+                                  onTap: () {
+                                    _pickImage(ImageSource.camera);
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                ListTile(
+                                  leading: const Icon(Icons.photo_library),
+                                  title: const Text('Choose from gallery'),
+                                  onTap: () {
+                                    _pickImage(ImageSource.gallery);
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
                             ),
-                            ListTile(
-                              leading: const Icon(Icons.photo_library),
-                              title: const Text('Choose from gallery'),
-                              onTap: () {
-                                _pickImage(ImageSource.gallery);
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-                child: const Text('Select Image'),
-              ),
-              ElevatedButton(
-                onPressed: _uploadNews,
-                child: const Text('Upload News'),
+                    child: const Text('Select Image'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: _uploadNews,
+                    child: const Text('Upload News'),
+                  ),
+                ],
               ),
             ],
           ),
