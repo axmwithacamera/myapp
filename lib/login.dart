@@ -21,9 +21,9 @@ class _LoginState extends State<Login> {
     final String password = passwordController.text.trim();
 
     // Check if the provided email and password match the credentials
-    if (email == 'admin@admin.com' && password == 'admin') {
+    if (email == 'admin@admin.com' && password == 'admin123') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const Admin()));
-    } else if (email == 'user@user.com' && password == 'user') {
+    } else if (email == 'user@user.com' && password == 'user123') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const Home()));
     } else {
       showDialog(
