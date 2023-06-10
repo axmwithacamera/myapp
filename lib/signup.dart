@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/home.dart';
 import 'login.dart';
 
@@ -16,6 +18,15 @@ class _SignupState extends State<Signup> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String? nameErrorText;
+  String? phoneNumberErrorText;
+  String? emailErrorText;
+  String? passwordErrorText;
+  String? confirmPasswordErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +54,12 @@ class _SignupState extends State<Signup> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
                   labelText: 'Name',
                   hintText: 'Enter your name eg: Ahmed Mohamed',
-                  hintStyle: TextStyle(color: Colors.black45),
+                  hintStyle: const TextStyle(color: Colors.black45),
+                  errorText: nameErrorText,
                 ),
               ),
             ),
@@ -59,11 +71,13 @@ class _SignupState extends State<Signup> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: phoneNumberController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
                   labelText: 'Phone Number',
                   hintText: 'Enter your mobile number',
-                  hintStyle: TextStyle(color: Colors.black45),
+                  hintStyle: const TextStyle(color: Colors.black45),
+                  errorText: phoneNumberErrorText,
                 ),
               ),
             ),
@@ -75,11 +89,13 @@ class _SignupState extends State<Signup> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: emailController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
                   labelText: 'Email',
                   hintText: 'Enter valid email id as abc@gmail.com',
-                  hintStyle: TextStyle(color: Colors.black45),
+                  hintStyle: const TextStyle(color: Colors.black45),
+                  errorText: emailErrorText,
                 ),
               ),
             ),
@@ -91,11 +107,13 @@ class _SignupState extends State<Signup> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: passwordController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
                   labelText: 'Password',
                   hintText: 'Enter your password',
-                  hintStyle: TextStyle(color: Colors.black45),
+                  hintStyle: const TextStyle(color: Colors.black45),
+                  errorText: passwordErrorText,
                 ),
               ),
             ),
@@ -107,11 +125,13 @@ class _SignupState extends State<Signup> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 controller: confirmPasswordController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
                   labelText: 'Confirm Password',
                   hintText: 'Enter your password',
-                  hintStyle: TextStyle(color: Colors.black45),
+                  hintStyle: const TextStyle(color: Colors.black45),
+                  errorText: confirmPasswordErrorText,
                 ),
               ),
             ),
@@ -127,31 +147,60 @@ class _SignupState extends State<Signup> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: TextButton(
-                onPressed: () {
+                onPressed: () async {
+                  setState(() {
+                    nameErrorText = null;
+                    phoneNumberErrorText = null;
+                    emailErrorText = null;
+                    passwordErrorText = null;
+                    confirmPasswordErrorText = null;
+                  });
+
                   if (_validateFields()) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const Home()),
-                    );
-                    debugPrint("pressed Sign Up");
-                  } else {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Error'),
-                          content: const Text('Please fill all the fields.'),
-                          actions: <Widget>[
-                            TextButton(
-                              child: const Text('OK'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
+                    try {
+                      // Create the user in Firebase Authentication
+                      UserCredential userCredential =
+                          await _auth.createUserWithEmailAndPassword(
+                        email: emailController.text,
+                        password: passwordController.text,
+                      );
+
+                      // Get the created user's UID
+                      String uid = userCredential.user!.uid;
+
+                      // Store additional user data in Firestore
+                      await _firestore.collection('users').doc(uid).set({
+                        'name': nameController.text,
+                        'phoneNumber': phoneNumberController.text,
+                        'admin': false,
+                      });
+
+                      // Navigate to the home screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const Home()),
+                      );
+                    } catch (e) {
+                      print('Error creating user: $e');
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext dialogContext) {
+                          return AlertDialog(
+                            title: const Text('Error'),
+                            content: const Text(
+                                'An error occurred during signup. Please try again.'),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('OK'),
+                                onPressed: () {
+                                  Navigator.of(dialogContext).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
                   }
                 },
                 child: const Text(
@@ -181,10 +230,72 @@ class _SignupState extends State<Signup> {
   }
 
   bool _validateFields() {
-    return nameController.text.isNotEmpty &&
-        phoneNumberController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty &&
-        confirmPasswordController.text.isNotEmpty;
+    bool isValid = true;
+
+    if (nameController.text.isEmpty) {
+      setState(() {
+        nameErrorText = 'Please enter your name';
+      });
+      isValid = false;
+    }
+
+    if (phoneNumberController.text.isEmpty) {
+      setState(() {
+        phoneNumberErrorText = 'Please enter your phone number';
+      });
+      isValid = false;
+    } else if (!isNumeric(phoneNumberController.text)) {
+      setState(() {
+        phoneNumberErrorText = 'Phone number should contain only numbers';
+      });
+      isValid = false;
+    }
+
+    if (emailController.text.isEmpty) {
+      setState(() {
+        emailErrorText = 'Please enter your email';
+      });
+      isValid = false;
+    } else if (!isValidEmail(emailController.text)) {
+      setState(() {
+        emailErrorText = 'Please enter a valid email';
+      });
+      isValid = false;
+    }
+
+    if (passwordController.text.isEmpty) {
+      setState(() {
+        passwordErrorText = 'Please enter a password';
+      });
+      isValid = false;
+    }
+
+    if (confirmPasswordController.text.isEmpty) {
+      setState(() {
+        confirmPasswordErrorText = 'Please confirm your password';
+      });
+      isValid = false;
+    } else if (confirmPasswordController.text != passwordController.text) {
+      setState(() {
+        confirmPasswordErrorText = 'Passwords do not match';
+      });
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  bool isNumeric(String value) {
+    if (value == null) {
+      return false;
+    }
+    return double.tryParse(value) != null;
+  }
+
+  bool isValidEmail(String value) {
+    // Email validation logic
+    // You can use a regular expression or any other validation method here
+    // For simplicity, we will check if it contains '@' and '.'
+    return value.contains('@') && value.contains('.');
   }
 }

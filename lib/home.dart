@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/favourite.dart';
 import 'package:myapp/login.dart';
 
@@ -9,20 +8,18 @@ class News {
   final String caption;
   final String body;
   final String? image; // Nullable image property
-  bool isFavorite;
+  bool isFavourite;
 
   News({
     required this.title,
     required this.caption,
     required this.body,
     this.image,
-    this.isFavorite = false,
+    this.isFavourite = false,
   });
 }
 
 class Home extends StatefulWidget {
-  static List<News> newsList = [];
-
   const Home({Key? key}) : super(key: key);
 
   @override
@@ -30,13 +27,38 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  void toggleFavorite(int index) {
+  List<News> newsList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNews();
+  }
+
+  void fetchNews() async {
+    final snapshot = await FirebaseFirestore.instance.collection('news').get();
+
     setState(() {
-      Home.newsList[index].isFavorite = !Home.newsList[index].isFavorite;
+      newsList = snapshot.docs.map((doc) {
+        final newsData = doc.data() as Map<String, dynamic>;
+        return News(
+          title: newsData['title'],
+          caption: newsData['caption'],
+          body: newsData['body'],
+          image: newsData['image'],
+          isFavourite: false,
+        );
+      }).toList();
     });
   }
 
-  void openFavoritesPage(BuildContext context) {
+  void toggleFavourite(int index) {
+    setState(() {
+      newsList[index].isFavourite = !newsList[index].isFavourite;
+    });
+  }
+
+  void openFavouritesPage(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const Favourite()),
@@ -52,7 +74,7 @@ class _HomeState extends State<Home> {
     // Implement your logout logic here
   }
 
-  void showFullScreenImage(String imagePath) {
+  void showFullScreenImage(String imageUrl) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -60,8 +82,8 @@ class _HomeState extends State<Home> {
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            child: Image.file(
-              File(imagePath),
+            child: Image.network(
+              imageUrl,
               fit: BoxFit.contain,
             ),
           ),
@@ -72,6 +94,10 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    if (newsList == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -86,7 +112,7 @@ class _HomeState extends State<Home> {
           children: [
             InkWell(
               onTap: () {
-                openFavoritesPage(context);
+                openFavouritesPage(context);
               },
               child: Container(
                 padding: const EdgeInsets.all(16),
@@ -98,7 +124,7 @@ class _HomeState extends State<Home> {
                     ),
                     SizedBox(width: 16),
                     Text(
-                      "Favorites",
+                      "Favourites",
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white,
@@ -136,9 +162,9 @@ class _HomeState extends State<Home> {
         ),
       ),
       body: ListView.builder(
-        itemCount: Home.newsList.length,
+        itemCount: newsList.length,
         itemBuilder: (context, index) {
-          final newsItem = Home.newsList[index];
+          final newsItem = newsList[index];
           return Card(
             margin: const EdgeInsets.all(10),
             child: Column(
@@ -152,8 +178,8 @@ class _HomeState extends State<Home> {
                         child: SizedBox(
                           width: double.infinity,
                           height: 230,
-                          child: Image.file(
-                            File(newsItem.image!),
+                          child: Image.network(
+                            newsItem.image!,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -203,13 +229,13 @@ class _HomeState extends State<Home> {
                           ),
                           IconButton(
                             onPressed: () {
-                              toggleFavorite(index);
+                              toggleFavourite(index);
                             },
                             icon: Icon(
-                              newsItem.isFavorite
+                              newsItem.isFavourite
                                   ? Icons.favorite
                                   : Icons.favorite_border,
-                              color: newsItem.isFavorite
+                              color: newsItem.isFavourite
                                   ? Colors.red
                                   : Colors.black,
                             ),

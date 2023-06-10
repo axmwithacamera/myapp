@@ -12,8 +12,7 @@ class Favourite extends StatefulWidget {
 }
 
 class _FavouriteState extends State<Favourite> {
-  List<News> favoriteNewsList =
-      Home.newsList.where((news) => news.isFavorite).toList();
+  List<News> favouriteNewsList = [];
 
   void openHomePage(BuildContext context) {
     Navigator.pushReplacement(
@@ -49,13 +48,13 @@ class _FavouriteState extends State<Favourite> {
     );
   }
 
-  void toggleFavorite(News newsItem) {
+  void toggleFavourite(News newsItem) {
     setState(() {
-      newsItem.isFavorite = !newsItem.isFavorite;
-      if (newsItem.isFavorite) {
-        favoriteNewsList.add(newsItem);
+      newsItem.isFavourite = !newsItem.isFavourite;
+      if (newsItem.isFavourite) {
+        favouriteNewsList.add(newsItem);
       } else {
-        favoriteNewsList.remove(newsItem);
+        favouriteNewsList.remove(newsItem);
       }
     });
   }
@@ -126,9 +125,9 @@ class _FavouriteState extends State<Favourite> {
         ),
       ),
       body: ListView.builder(
-        itemCount: favoriteNewsList.length,
+        itemCount: favouriteNewsList.length,
         itemBuilder: (context, index) {
-          final newsItem = favoriteNewsList[index];
+          final newsItem = favouriteNewsList[index];
           return Card(
             margin: const EdgeInsets.all(10),
             child: Column(
@@ -191,13 +190,13 @@ class _FavouriteState extends State<Favourite> {
                           ),
                           IconButton(
                             icon: Icon(
-                              newsItem.isFavorite
+                              newsItem.isFavourite
                                   ? Icons.favorite
                                   : Icons.favorite_border,
-                              color: newsItem.isFavorite ? Colors.red : null,
+                              color: newsItem.isFavourite ? Colors.red : null,
                             ),
                             onPressed: () {
-                              toggleFavorite(newsItem);
+                              toggleFavourite(newsItem);
                             },
                           ),
                         ],

@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:myapp/admin.dart';
 import 'package:myapp/components/my_textfield.dart';
-import 'package:myapp/home.dart';
+// import 'package:myapp/home.dart';
 import 'package:myapp/login.dart';
 
 class ManageNews extends StatefulWidget {
@@ -29,12 +30,12 @@ class _ManageNewsState extends State<ManageNews> {
     }
   }
 
-  void _editNews(int index) {
-    final News newsItem = Home.newsList[index];
-    titleController.text = newsItem.title;
-    captionController.text = newsItem.caption;
-    bodyController.text = newsItem.body;
-    _image = newsItem.image != null ? File(newsItem.image!) : null;
+  void _editNews(int index, DocumentSnapshot newsSnapshot) {
+    final newsItem = newsSnapshot.data() as Map<String, dynamic>;
+    titleController.text = newsItem['title'];
+    captionController.text = newsItem['caption'];
+    bodyController.text = newsItem['body'];
+    _image = newsItem['image'] != null ? File(newsItem['image']) : null;
 
     showDialog(
       context: context,
@@ -90,14 +91,15 @@ class _ManageNewsState extends State<ManageNews> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  final News editedNews = News(
-                    title: titleController.text,
-                    caption: captionController.text,
-                    body: bodyController.text,
-                    image: _image != null ? _image!.path : null,
-                    isFavorite: newsItem.isFavorite,
-                  );
-                  Home.newsList[index] = editedNews;
+                  final editedNews = {
+                    'title': titleController.text,
+                    'caption': captionController.text,
+                    'body': bodyController.text,
+                    'image': _image != null ? _image!.path : null,
+                    'isFavorite': newsItem['isFavorite'],
+                  };
+                  // Update the news item in Firestore
+                  newsSnapshot.reference.update(editedNews);
                 });
                 Navigator.pop(context);
               },
@@ -109,7 +111,7 @@ class _ManageNewsState extends State<ManageNews> {
     );
   }
 
-  void _deleteNews(int index) {
+  void _deleteNews(int index, DocumentSnapshot newsSnapshot) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -126,7 +128,8 @@ class _ManageNewsState extends State<ManageNews> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  Home.newsList.removeAt(index);
+                  // Delete the news item from Firestore
+                  newsSnapshot.reference.delete();
                 });
                 Navigator.pop(context);
               },
@@ -216,33 +219,49 @@ class _ManageNewsState extends State<ManageNews> {
           ],
         ),
       ),
-      body: ListView.builder(
-        itemCount: Home.newsList.length,
-        itemBuilder: (context, index) {
-          final newsItem = Home.newsList[index];
-          return ListTile(
-            title: Text(newsItem.title),
-            subtitle: Text(newsItem.caption),
-            leading: newsItem.image != null
-                ? Image.file(File(newsItem.image!))
-                : null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    _editNews(index);
-                  },
-                  icon: const Icon(Icons.edit),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('news').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error fetching news'));
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final newsList = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: newsList.length,
+            itemBuilder: (context, index) {
+              final newsSnapshot = newsList[index];
+              final newsItem = newsSnapshot.data() as Map<String, dynamic>;
+              return ListTile(
+                title: Text(newsItem['title']),
+                subtitle: Text(newsItem['caption']),
+                leading: newsItem['image'] != null
+                    ? Image.network(newsItem['image'])
+                    : null,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        _editNews(index, newsSnapshot);
+                      },
+                      icon: const Icon(Icons.edit),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        _deleteNews(index, newsSnapshot);
+                      },
+                      icon: const Icon(Icons.delete),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: () {
-                    _deleteNews(index);
-                  },
-                  icon: const Icon(Icons.delete),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

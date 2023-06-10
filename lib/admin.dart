@@ -1,11 +1,14 @@
 import 'dart:io';
 
+// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myapp/components/my_textfield.dart';
-import 'package:myapp/home.dart';
+// import 'package:myapp/home.dart';
 import 'package:myapp/login.dart';
 import 'package:myapp/manage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Admin extends StatefulWidget {
   const Admin({Key? key}) : super(key: key);
@@ -20,6 +23,9 @@ class _AdminState extends State<Admin> {
   final TextEditingController bodyController = TextEditingController();
   File? _image;
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
   Future<void> _pickImage(ImageSource source) async {
     final pickedImage = await ImagePicker().pickImage(source: source);
     if (pickedImage != null) {
@@ -29,29 +35,43 @@ class _AdminState extends State<Admin> {
     }
   }
 
-  void _uploadNews() {
+  Future<void> _uploadNews() async {
     final String title = titleController.text;
     final String caption = captionController.text;
     final String body = bodyController.text;
 
-    setState(() {
-      Home.newsList.add(
-        News(
-          title: title,
-          caption: caption,
-          body: body,
-          image: _image != null ? _image!.path : null,
-        ),
-      );
-    });
+    // Prepare data for upload
+    Map<String, dynamic> newsData = {
+      'title': title,
+      'caption': caption,
+      'body': body,
+      'image': null,
+    };
 
-    // Reset fields
-    titleController.clear();
-    captionController.clear();
-    bodyController.clear();
-    setState(() {
-      _image = null;
-    });
+    // Upload image to Firebase Storage
+    if (_image != null) {
+      final imageRef = _storage.ref().child('images/${DateTime.now()}.jpg');
+      await imageRef.putFile(_image!);
+      final imageUrl = await imageRef.getDownloadURL();
+      newsData['image'] = imageUrl;
+    }
+
+    try {
+      // Upload the news item to Firestore
+      await _firestore.collection('news').add(newsData);
+
+      // Reset fields
+      titleController.clear();
+      captionController.clear();
+      bodyController.clear();
+      setState(() {
+        _image = null;
+      });
+
+      // Show success message or perform further actions
+    } catch (error) {
+      // Handle error
+    }
   }
 
   void openManagePage(BuildContext context) {
@@ -216,24 +236,17 @@ class _AdminState extends State<Admin> {
   }
 }
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'News App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const Home(),
-      routes: {
-        '/admin': (context) => const Admin(),
-      },
-    );
-  }
-}
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp();
+//   runApp(const MaterialApp(
+//     title: 'News App',
+//     theme: ThemeData(
+//       primarySwatch: Colors.blue,
+//     ),
+//     home: Home(),
+//     routes: {
+//       '/admin': (context) => const Admin(),
+//     },
+//   ));
+// }

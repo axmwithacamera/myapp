@@ -4,6 +4,8 @@ import 'package:myapp/components/my_textfield.dart';
 import 'package:myapp/signup.dart';
 
 import 'admin.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -16,22 +18,62 @@ class _LoginState extends State<Login> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     final String email = usernameController.text.trim();
     final String password = passwordController.text.trim();
 
-    // Check if the provided email and password match the credentials
-    if (email == 'admin@admin.com' && password == 'admin123') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const Admin()));
-    } else if (email == 'user@user.com' && password == 'user123') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const Home()));
-    } else {
+    BuildContext context = this.context; // Store the BuildContext in a variable
+
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      String uid = userCredential.user!.uid;
+      DocumentSnapshot<Map<String, dynamic>> userSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      bool isAdmin = userSnapshot['admin'];
+
+      if (isAdmin) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const Admin()));
+      } else {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const Home()));
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'An error occurred during login.';
+
+      if (e.code == 'user-not-found') {
+        errorMessage = 'User not found. Please check your credentials.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Wrong password. Please check your credentials.';
+      }
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Incorrect Information'),
-          content:
-              const Text('The email or password you entered is incorrect.'),
+          title: const Text('Error'),
+          content: Text(errorMessage),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('An error occurred during login.'),
           actions: [
             TextButton(
               onPressed: () {
