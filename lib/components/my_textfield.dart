@@ -5,14 +5,16 @@ class MyTextField extends StatelessWidget {
   final String labelText;
   final String hintText;
   final bool obscureText;
+  final String? errorText;
 
   const MyTextField({
-    super.key,
+    Key? key,
     required this.controller,
     required this.labelText,
     required this.hintText,
     required this.obscureText,
-  });
+    this.errorText,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +24,12 @@ class MyTextField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            labelText: labelText,
-            hintText: hintText,
-            hintStyle: const TextStyle(color: Colors.black45)),
+          border: const OutlineInputBorder(),
+          labelText: labelText,
+          hintText: hintText,
+          hintStyle: const TextStyle(color: Colors.black45),
+          errorText: errorText, // Display error text if provided
+        ),
       ),
     );
   }

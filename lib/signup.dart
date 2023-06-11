@@ -137,7 +137,7 @@ class _SignupState extends State<Signup> {
             ),
             const Padding(
               padding:
-                  EdgeInsets.only(left: 15.0, right: 15.0, top: 30, bottom: 30),
+                  EdgeInsets.only(left: 15.0, right: 15.0, top: 4, bottom: 30),
             ),
             Container(
               height: 40,
@@ -182,24 +182,34 @@ class _SignupState extends State<Signup> {
                       );
                     } catch (e) {
                       print('Error creating user: $e');
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext dialogContext) {
-                          return AlertDialog(
-                            title: const Text('Error'),
-                            content: const Text(
-                                'An error occurred during signup. Please try again.'),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('OK'),
-                                onPressed: () {
-                                  Navigator.of(dialogContext).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                      String errorMessage =
+                          'An error occurred during signup. Please try again.';
+
+                      if (e is FirebaseAuthException &&
+                          e.code == 'email-already-in-use') {
+                        errorMessage = 'Email taken';
+                        setState(() {
+                          emailErrorText = 'This email is already taken';
+                        });
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext dialogContext) {
+                            return AlertDialog(
+                              title: const Text('Error'),
+                              content: Text(errorMessage),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: const Text('OK'),
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
                     }
                   }
                 },
@@ -266,6 +276,11 @@ class _SignupState extends State<Signup> {
     if (passwordController.text.isEmpty) {
       setState(() {
         passwordErrorText = 'Please enter a password';
+      });
+      isValid = false;
+    } else if (passwordController.text.length < 6) {
+      setState(() {
+        passwordErrorText = 'Password must be a minimum of 6 characters';
       });
       isValid = false;
     }

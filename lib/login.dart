@@ -17,12 +17,18 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  String? emailErrorText;
+  String? passwordErrorText;
 
   void _login() async {
     final String email = usernameController.text.trim();
     final String password = passwordController.text.trim();
 
     BuildContext context = this.context; // Store the BuildContext in a variable
+
+    if (!_validateFields()) {
+      return;
+    }
 
     try {
       UserCredential userCredential =
@@ -46,29 +52,20 @@ class _LoginState extends State<Login> {
       }
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'An error occurred during login.';
-
+      print('Error logging in: $e');
       if (e.code == 'user-not-found') {
-        errorMessage = 'User not found. Please check your credentials.';
+        setState(() {
+          emailErrorText = 'User not found';
+          passwordErrorText = null;
+        });
       } else if (e.code == 'wrong-password') {
-        errorMessage = 'Wrong password. Please check your credentials.';
+        setState(() {
+          emailErrorText = null;
+          passwordErrorText = 'Incorrect password';
+        });
       }
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text(errorMessage),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
     } catch (e) {
+      print('Error logging in: $e');
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -85,6 +82,46 @@ class _LoginState extends State<Login> {
         ),
       );
     }
+  }
+
+  bool _validateFields() {
+    bool isValid = true;
+
+    if (usernameController.text.isEmpty) {
+      setState(() {
+        emailErrorText = 'Please enter your email';
+      });
+      isValid = false;
+    } else if (!isValidEmail(usernameController.text)) {
+      setState(() {
+        emailErrorText = 'Please enter a valid email';
+      });
+      isValid = false;
+    } else {
+      setState(() {
+        emailErrorText = null;
+      });
+    }
+
+    if (passwordController.text.isEmpty) {
+      setState(() {
+        passwordErrorText = 'Please enter a password';
+      });
+      isValid = false;
+    } else {
+      setState(() {
+        passwordErrorText = null;
+      });
+    }
+
+    return isValid;
+  }
+
+  bool isValidEmail(String value) {
+    // Email validation logic
+    // You can use a regular expression or any other validation method here
+    // For simplicity, we will check if it contains '@' and '.'
+    return value.contains('@') && value.contains('.');
   }
 
   @override
@@ -114,6 +151,7 @@ class _LoginState extends State<Login> {
               labelText: 'Email',
               hintText: 'Enter valid email id as abc@gmail.com',
               obscureText: false,
+              errorText: emailErrorText,
             ),
             const Padding(
               padding:
@@ -124,6 +162,7 @@ class _LoginState extends State<Login> {
               labelText: 'Password',
               hintText: 'Enter your password',
               obscureText: true,
+              errorText: passwordErrorText,
             ),
             const Padding(
               padding:

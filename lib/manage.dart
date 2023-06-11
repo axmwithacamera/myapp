@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:myapp/admin.dart';
 import 'package:myapp/components/my_textfield.dart';
-// import 'package:myapp/home.dart';
 import 'package:myapp/login.dart';
 
 class ManageNews extends StatefulWidget {
@@ -21,6 +21,8 @@ class _ManageNewsState extends State<ManageNews> {
   final TextEditingController bodyController = TextEditingController();
   File? _image;
 
+  final FirebaseStorage storage = FirebaseStorage.instance;
+
   Future<void> _pickImage(ImageSource source) async {
     final pickedImage = await ImagePicker().pickImage(source: source);
     if (pickedImage != null) {
@@ -28,6 +30,20 @@ class _ManageNewsState extends State<ManageNews> {
         _image = File(pickedImage.path);
       });
     }
+  }
+
+  Future<String?> _uploadImage(File? image, String newsId) async {
+    if (image == null) return null;
+
+    // Create a reference to the image file in Firebase Storage
+    Reference ref = storage.ref().child('images/$newsId.jpg');
+
+    // Upload the image file to Firebase Storage
+    UploadTask uploadTask = ref.putFile(image);
+
+    // Get the download URL of the uploaded image
+    TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
+    return snapshot.ref.getDownloadURL();
   }
 
   void _editNews(int index, DocumentSnapshot newsSnapshot) {
@@ -89,18 +105,24 @@ class _ManageNewsState extends State<ManageNews> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                setState(() {
-                  final editedNews = {
-                    'title': titleController.text,
-                    'caption': captionController.text,
-                    'body': bodyController.text,
-                    'image': _image != null ? _image!.path : null,
-                    'isFavorite': newsItem['isFavorite'],
-                  };
-                  // Update the news item in Firestore
-                  newsSnapshot.reference.update(editedNews);
-                });
+              onPressed: () async {
+                final editedNews = {
+                  'title': titleController.text,
+                  'caption': captionController.text,
+                  'body': bodyController.text,
+                  'isFavorite': newsItem['isFavorite'],
+                };
+
+                if (_image != null) {
+                  String newsId =
+                      DateTime.now().millisecondsSinceEpoch.toString();
+                  String? imageUrl = await _uploadImage(_image, newsId);
+                  editedNews['image'] = imageUrl;
+                } else {
+                  editedNews['image'] = null;
+                }
+
+                newsSnapshot.reference.update(editedNews);
                 Navigator.pop(context);
               },
               child: const Text('Save'),
